@@ -1,0 +1,132 @@
+erDiagram
+    USUARIO {
+        bigint id_usuario PK
+        varchar nombre
+        varchar correo UK
+        varchar contrasena_hash
+        varchar rol
+        varchar estado
+        timestamptz fecha_registro
+        numeric saldo
+    }
+
+    DESARROLLADOR {
+        bigint id_desarrollador PK
+        bigint id_usuario FK,UK
+        varchar nombre
+        varchar pais
+        varchar sitio_web
+    }
+
+    VIDEOJUEGO {
+        bigint id_juego PK
+        bigint id_desarrollador FK
+        varchar titulo
+        text descripcion
+        numeric precio
+        date fecha_lanzamiento
+        varchar estado
+    }
+
+    GENERO {
+        bigint id_genero PK
+        varchar nombre UK
+        text descripcion
+    }
+
+    VIDEOJUEGO_GENERO {
+        bigint id_juego PK,FK
+        bigint id_genero PK,FK
+    }
+
+    IMAGEN_VIDEOJUEGO {
+        bigint id_imagen PK
+        bigint id_juego FK
+        text url
+        integer orden
+    }
+
+    COMPRA {
+        bigint id_compra PK
+        bigint id_usuario FK
+        bigint id_juego FK
+        timestamptz fecha
+        numeric monto
+        varchar estado
+    }
+
+    BIBLIOTECA {
+        bigint id_usuario PK,FK
+        bigint id_juego PK,FK
+        timestamptz fecha_adquisicion
+    }
+
+    LISTA_DESEOS {
+        bigint id_usuario PK,FK
+        bigint id_juego PK,FK
+        timestamptz fecha_agregado
+    }
+
+    RESENA {
+        bigint id_resena PK
+        bigint id_usuario FK
+        bigint id_juego FK
+        integer calificacion
+        text comentario
+        timestamptz fecha
+    }
+
+    AMISTAD {
+        bigint id_amistad PK
+        bigint id_usuario_solicita FK
+        bigint id_usuario_recibe FK
+        varchar estado
+        timestamptz fecha
+    }
+
+    PROMOCION {
+        bigint id_promocion PK
+        varchar nombre
+        numeric porcentaje_descuento
+        timestamptz fecha_inicio
+        timestamptz fecha_fin
+    }
+
+    PROMOCION_VIDEOJUEGO {
+        bigint id_promocion PK,FK
+        bigint id_juego PK,FK
+    }
+
+    HISTORIAL_PRECIO {
+        bigint id_historial PK
+        bigint id_juego FK
+        numeric precio_anterior
+        numeric precio_nuevo
+        timestamptz fecha_cambio
+    }
+
+    USUARIO ||--o| DESARROLLADOR : "tiene perfil"
+    DESARROLLADOR ||--o{ VIDEOJUEGO : publica
+    VIDEOJUEGO ||--|{ VIDEOJUEGO_GENERO : clasifica
+    GENERO ||--o{ VIDEOJUEGO_GENERO : agrupa
+    VIDEOJUEGO ||--o{ IMAGEN_VIDEOJUEGO : contiene
+
+    USUARIO ||--o{ COMPRA : realiza
+    VIDEOJUEGO ||--o{ COMPRA : corresponde
+
+    USUARIO ||--o{ BIBLIOTECA : posee
+    VIDEOJUEGO ||--o{ BIBLIOTECA : pertenece
+
+    USUARIO ||--o{ LISTA_DESEOS : registra
+    VIDEOJUEGO ||--o{ LISTA_DESEOS : aparece
+
+    USUARIO ||--o{ RESENA : escribe
+    VIDEOJUEGO ||--o{ RESENA : recibe
+
+    USUARIO ||--o{ AMISTAD : solicita
+    USUARIO ||--o{ AMISTAD : recibe
+
+    PROMOCION ||--|{ PROMOCION_VIDEOJUEGO : incluye
+    VIDEOJUEGO ||--o{ PROMOCION_VIDEOJUEGO : participa
+
+    VIDEOJUEGO ||--o{ HISTORIAL_PRECIO : registra
