@@ -130,3 +130,11 @@ erDiagram
     VIDEOJUEGO ||--o{ PROMOCION_VIDEOJUEGO : participa
 
     VIDEOJUEGO ||--o{ HISTORIAL_PRECIO : registra
+
+---------------------- hasta aquí el Diagrama ------------------------------------
+
+Párrafo para anexar:
+
+Se utilizaron tablas intermedias como `Videojuego_Genero` y `Promocion_Videojuego` para resolver las relaciones muchos a muchos entre videojuegos y géneros, y entre promociones y videojuegos, respectivamente. Asimismo, se conservaron las tablas `Historial_Precio`, que registra los cambios de precio de los videojuegos para garantizar su trazabilidad, y `Biblioteca` y `Lista_Deseos`, que representan relaciones diferentes entre usuarios y videojuegos. Respecto a la Entrega 1, se precisaron los tipos de datos, las llaves primarias y foráneas, y las restricciones de integridad de las 14 entidades preliminares. Adicionalmente, se propone incorporar una tabla `Movimiento_Saldo` para registrar las recargas y otros movimientos de saldo, facilitando la auditoría de las operaciones financieras.
+
+
