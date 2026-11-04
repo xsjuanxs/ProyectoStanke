@@ -1,0 +1,132 @@
+erDiagram
+    USUARIO {
+        bigint id PK
+        varchar(120) nombre "NOT NULL"
+        varchar(254) correo UK "NOT NULL"
+        varchar(255) contrasena_hash "NOT NULL"
+        varchar(20) rol "NOT NULL, jugador|desarrollador|administrador"
+        varchar(20) estado "NOT NULL, activo|suspendido"
+        timestamptz fecha_registro "NOT NULL"
+        numeric(12_2) saldo "NOT NULL, >= 0"
+    }
+
+    DESARROLLADOR {
+        bigint id PK
+        bigint usuario_id FK,UK "NOT NULL"
+        varchar(150) nombre "NOT NULL"
+        varchar(100) pais "NOT NULL"
+        text sitio_web
+    }
+
+    VIDEOJUEGO {
+        bigint id PK
+        bigint desarrollador_id FK "NOT NULL"
+        varchar(200) titulo "NOT NULL"
+        text descripcion
+        numeric(12_2) precio "NOT NULL, >= 0"
+        date fecha_lanzamiento
+        varchar(20) estado "NOT NULL, pendiente|publicado|retirado"
+    }
+
+    GENERO {
+        bigint id PK
+        varchar(80) nombre UK "NOT NULL"
+        text descripcion
+    }
+
+    VIDEOJUEGO_GENERO {
+        bigint videojuego_id PK,FK
+        bigint genero_id PK,FK
+    }
+
+    IMAGEN_VIDEOJUEGO {
+        bigint id PK
+        bigint videojuego_id FK "NOT NULL"
+        text url "NOT NULL"
+        integer orden "NOT NULL, > 0"
+    }
+
+    COMPRA {
+        bigint id PK
+        bigint usuario_id FK "NOT NULL"
+        bigint videojuego_id FK "NOT NULL"
+        timestamptz fecha "NOT NULL"
+        numeric(12_2) monto "NOT NULL, >= 0"
+        varchar(20) estado "NOT NULL, completada|reembolsada"
+    }
+
+    BIBLIOTECA {
+        bigint usuario_id PK,FK
+        bigint videojuego_id PK,FK
+        timestamptz fecha_adquisicion "NOT NULL"
+    }
+
+    LISTA_DESEOS {
+        bigint usuario_id PK,FK
+        bigint videojuego_id PK,FK
+        timestamptz fecha_agregado "NOT NULL"
+    }
+
+    RESENA {
+        bigint id PK
+        bigint usuario_id FK "NOT NULL, UK(usuario_id, videojuego_id)"
+        bigint videojuego_id FK "NOT NULL"
+        integer calificacion "NOT NULL, 1..5"
+        text comentario
+        timestamptz fecha "NOT NULL"
+    }
+
+    AMISTAD {
+        bigint id PK
+        bigint usuario_solicita_id FK "NOT NULL"
+        bigint usuario_recibe_id FK "NOT NULL"
+        varchar(20) estado "NOT NULL, pendiente|aceptada|rechazada"
+        timestamptz fecha "NOT NULL"
+    }
+
+    PROMOCION {
+        bigint id PK
+        varchar(150) nombre "NOT NULL"
+        numeric(5_2) descuento "NOT NULL, 1..90"
+        timestamptz fecha_inicio "NOT NULL"
+        timestamptz fecha_fin "NOT NULL, > fecha_inicio"
+    }
+
+    PROMOCION_VIDEOJUEGO {
+        bigint promocion_id PK,FK
+        bigint videojuego_id PK,FK
+    }
+
+    HISTORIAL_PRECIO {
+        bigint id PK
+        bigint videojuego_id FK "NOT NULL"
+        numeric(12_2) precio_anterior "NOT NULL"
+        numeric(12_2) precio_nuevo "NOT NULL"
+        timestamptz fecha_cambio "NOT NULL"
+    }
+
+    USUARIO ||--o| DESARROLLADOR : "tiene perfil"
+    DESARROLLADOR ||--o{ VIDEOJUEGO : publica
+    VIDEOJUEGO ||--|{ VIDEOJUEGO_GENERO : clasifica
+    GENERO ||--o{ VIDEOJUEGO_GENERO : agrupa
+    VIDEOJUEGO ||--o{ IMAGEN_VIDEOJUEGO : contiene
+
+    USUARIO ||--o{ COMPRA : realiza
+    VIDEOJUEGO ||--o{ COMPRA : corresponde
+
+    USUARIO ||--o{ BIBLIOTECA : posee
+    VIDEOJUEGO ||--o{ BIBLIOTECA : "esta en"
+
+    USUARIO ||--o{ LISTA_DESEOS : registra
+    VIDEOJUEGO ||--o{ LISTA_DESEOS : aparece
+
+    USUARIO ||--o{ RESENA : escribe
+    VIDEOJUEGO ||--o{ RESENA : recibe
+
+    USUARIO ||--o{ AMISTAD : solicita
+    USUARIO ||--o{ AMISTAD : recibe
+
+    PROMOCION ||--|{ PROMOCION_VIDEOJUEGO : incluye
+    VIDEOJUEGO ||--o{ PROMOCION_VIDEOJUEGO : participa
+
+    VIDEOJUEGO ||--o{ HISTORIAL_PRECIO : registra

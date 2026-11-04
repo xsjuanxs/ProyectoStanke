@@ -1,0 +1,305 @@
+INSERT INTO resena (usuario_id, videojuego_id, calificacion, comentario)
+VALUES (9, 2, 6, 'Lo mejor que he jugado en mi vida.');
+psql:sql/04_pruebas.sql:16: ERROR:  new row for relation "resena" violates check constraint "ck_resena_calificacion"
+DETAIL:  Failing row contains (21, 9, 2, 6, Lo mejor que he jugado en mi vida., 2026-11-03 19:45:36.714073-05).
+UPDATE usuario SET saldo = saldo - 500 WHERE id = 10;
+psql:sql/04_pruebas.sql:19: ERROR:  new row for relation "usuario" violates check constraint "ck_usuario_saldo"
+DETAIL:  Failing row contains (10, Sofía Martínez Díaz, sofia.martinez@gmail.com, $2b$12$WiFxHxk8blWWCvwrQZaYKeIZNtfdOYynrUlt9cQaof9UblJA5yAje, jugador, activo, 2025-06-22 18:25:00-05, -484.70).
+INSERT INTO videojuego (desarrollador_id, titulo, precio)
+VALUES (1, 'Pixel Dungeon Tactics II', -5.00);
+psql:sql/04_pruebas.sql:23: ERROR:  new row for relation "videojuego" violates check constraint "ck_videojuego_precio"
+DETAIL:  Failing row contains (12, 1, Pixel Dungeon Tactics II, null, -5.00, null, pendiente).
+INSERT INTO promocion (nombre, descuento, fecha_inicio, fecha_fin)
+VALUES ('Liquidación total', 95, '2026-12-01', '2026-12-05');
+psql:sql/04_pruebas.sql:27: ERROR:  new row for relation "promocion" violates check constraint "ck_promocion_descuento"
+DETAIL:  Failing row contains (7, Liquidación total, 95.00, 2026-12-01 00:00:00-05, 2026-12-05 00:00:00-05).
+INSERT INTO amistad (usuario_solicita_id, usuario_recibe_id) VALUES (9, 9);
+psql:sql/04_pruebas.sql:30: ERROR:  new row for relation "amistad" violates check constraint "ck_amistad_distintos"
+DETAIL:  Failing row contains (8, 9, 9, pendiente, 2026-11-03 19:45:36.723343-05).
+INSERT INTO usuario (nombre, correo, contrasena_hash, rol)
+VALUES ('Valeria Montoya', 'valeria.montoya@gmail.com',
+        '$2b$12$bQy79C9Xn/Exh16v2uXxluyqYOMV59gt8cueaLthjJ/IEByY47j16', 'moderador');
+psql:sql/04_pruebas.sql:35: ERROR:  new row for relation "usuario" violates check constraint "ck_usuario_rol"
+DETAIL:  Failing row contains (16, Valeria Montoya, valeria.montoya@gmail.com, $2b$12$bQy79C9Xn/Exh16v2uXxluyqYOMV59gt8cueaLthjJ/IEByY47j16, moderador, activo, 2026-11-03 19:45:36.723711-05, 0.00).
+INSERT INTO videojuego (desarrollador_id, titulo, precio)
+VALUES (99, 'Reino Perdido', 19.99);
+psql:sql/04_pruebas.sql:39: ERROR:  insert or update on table "videojuego" violates foreign key constraint "fk_videojuego_desarrollador"
+DETAIL:  Key (desarrollador_id)=(99) is not present in table "desarrollador".
+DELETE FROM desarrollador WHERE id = 1;
+psql:sql/04_pruebas.sql:42: ERROR:  update or delete on table "desarrollador" violates RESTRICT setting of foreign key constraint "fk_videojuego_desarrollador" on table "videojuego"
+DETAIL:  Key (id)=(1) is referenced from table "videojuego".
+INSERT INTO usuario (nombre, correo, contrasena_hash, rol)
+VALUES ('Carlos Andrés Pérez', 'carlos.perez@gmail.com',
+        '$2b$12$bQy79C9Xn/Exh16v2uXxluyqYOMV59gt8cueaLthjJ/IEByY47j16', 'jugador');
+psql:sql/04_pruebas.sql:47: ERROR:  duplicate key value violates unique constraint "uq_usuario_correo"
+DETAIL:  Key (correo)=(carlos.perez@gmail.com) already exists.
+INSERT INTO resena (usuario_id, videojuego_id, calificacion, comentario)
+VALUES (7, 1, 4, 'Lo volví a jugar y sigue siendo excelente.');
+psql:sql/04_pruebas.sql:51: ERROR:  duplicate key value violates unique constraint "uq_resena_usuario_videojuego"
+DETAIL:  Key (usuario_id, videojuego_id)=(7, 1) already exists.
+INSERT INTO usuario (nombre, correo, rol)
+VALUES ('Valeria Montoya', 'valeria.montoya@gmail.com', 'jugador');
+psql:sql/04_pruebas.sql:55: ERROR:  null value in column "contrasena_hash" of relation "usuario" violates not-null constraint
+DETAIL:  Failing row contains (18, Valeria Montoya, valeria.montoya@gmail.com, null, jugador, activo, 2026-11-03 19:45:36.728421-05, 0.00).
+CALL pr_publicar_videojuego(
+    5, 'Leyendas del Amazonas',
+    'Aventura de supervivencia río abajo por la selva amazónica, con fauna y comunidades reales como inspiración.',
+    27.99, '2027-03-15',
+    ARRAY[6, 5]::BIGINT[],
+    ARRAY['https://cdn.stanke.co/juegos/leyendas-del-amazonas/portada.jpg',
+          'https://cdn.stanke.co/juegos/leyendas-del-amazonas/rio.jpg'],
+    NULL);
+psql:sql/04_pruebas.sql:70: NOTICE:  Videojuego 14 "Leyendas del Amazonas" registrado en estado pendiente con 2 género(s) y 2 imagen(es)
+ p_videojuego_id 
+-----------------
+              14
+(1 row)
+
+SELECT v.id, v.titulo, v.precio, v.estado, d.nombre AS desarrollador
+  FROM videojuego v JOIN desarrollador d ON d.id = v.desarrollador_id
+ WHERE v.titulo = 'Leyendas del Amazonas';
+ id |        titulo         | precio |  estado   | desarrollador 
+----+-----------------------+--------+-----------+---------------
+ 14 | Leyendas del Amazonas |  27.99 | pendiente | Nebula Soft
+(1 row)
+
+SELECT vg.videojuego_id, g.nombre AS genero
+  FROM videojuego_genero vg JOIN genero g ON g.id = vg.genero_id
+ WHERE vg.videojuego_id = (SELECT id FROM videojuego WHERE titulo = 'Leyendas del Amazonas');
+ videojuego_id |  genero  
+---------------+----------
+            14 | Indie
+            14 | Aventura
+(2 rows)
+
+SELECT videojuego_id, orden, url FROM imagen_videojuego
+ WHERE videojuego_id = (SELECT id FROM videojuego WHERE titulo = 'Leyendas del Amazonas')
+ ORDER BY orden;
+ videojuego_id | orden |                              url                               
+---------------+-------+----------------------------------------------------------------
+            14 |     1 | https://cdn.stanke.co/juegos/leyendas-del-amazonas/portada.jpg
+            14 |     2 | https://cdn.stanke.co/juegos/leyendas-del-amazonas/rio.jpg
+(2 rows)
+
+CALL pr_publicar_videojuego(5, 'Ríos de Fuego', 'Plataformas en volcanes activos.',
+                            15.99, '2027-05-01', ARRAY[6, 99]::BIGINT[], NULL, NULL);
+psql:sql/04_pruebas.sql:86: ERROR:  El género 99 no existe
+CONTEXT:  PL/pgSQL function pr_publicar_videojuego(bigint,character varying,text,numeric,date,bigint[],text[],bigint) line 43 at RAISE
+CALL pr_publicar_videojuego(99, 'Ríos de Fuego', 'Plataformas en volcanes activos.',
+                            15.99, '2027-05-01', ARRAY[6]::BIGINT[], NULL, NULL);
+psql:sql/04_pruebas.sql:90: ERROR:  El desarrollador 99 no existe
+CONTEXT:  PL/pgSQL function pr_publicar_videojuego(bigint,character varying,text,numeric,date,bigint[],text[],bigint) line 13 at RAISE
+CALL pr_publicar_videojuego(1, 'Chronos Odyssey', 'Remasterización.',
+                            59.99, '2027-01-01', ARRAY[2]::BIGINT[], NULL, NULL);
+psql:sql/04_pruebas.sql:94: ERROR:  El desarrollador 1 ya tiene un videojuego llamado "Chronos Odyssey"
+CONTEXT:  PL/pgSQL function pr_publicar_videojuego(bigint,character varying,text,numeric,date,bigint[],text[],bigint) line 27 at RAISE
+SELECT count(*) AS total_videojuegos FROM videojuego;
+ total_videojuegos 
+-------------------
+                12
+(1 row)
+
+UPDATE videojuego SET estado = 'publicado' WHERE titulo = 'Leyendas del Amazonas';
+UPDATE 1
+UPDATE videojuego SET precio = 24.99 WHERE titulo = 'Leyendas del Amazonas';
+UPDATE 1
+SELECT h.id, h.videojuego_id, v.titulo, h.precio_anterior, h.precio_nuevo, h.fecha_cambio
+  FROM historial_precio h JOIN videojuego v ON v.id = h.videojuego_id
+ WHERE v.titulo = 'Leyendas del Amazonas';
+ id | videojuego_id |        titulo         | precio_anterior | precio_nuevo |         fecha_cambio          
+----+---------------+-----------------------+-----------------+--------------+-------------------------------
+  7 |            14 | Leyendas del Amazonas |           27.99 |        24.99 | 2026-11-03 19:45:36.739381-05
+(1 row)
+
+UPDATE videojuego SET precio = 24.99, descripcion = descripcion WHERE titulo = 'Leyendas del Amazonas';
+UPDATE 1
+SELECT count(*) AS cambios_de_precio
+  FROM historial_precio h JOIN videojuego v ON v.id = h.videojuego_id
+ WHERE v.titulo = 'Leyendas del Amazonas';
+ cambios_de_precio 
+-------------------
+                 1
+(1 row)
+
+CALL pr_crear_promocion('Oferta Relámpago Stanke', 30, now(), now() + INTERVAL '7 days',
+                        ARRAY[8, 9]::BIGINT[], NULL);
+psql:sql/04_pruebas.sql:127: NOTICE:  Promoción 8 "Oferta Relámpago Stanke" creada con 30 % de descuento para 2 videojuego(s)
+ p_promocion_id 
+----------------
+              8
+(1 row)
+
+SELECT p.id, p.nombre, p.descuento, v.titulo
+  FROM promocion p
+  JOIN promocion_videojuego pv ON pv.promocion_id = p.id
+  JOIN videojuego v ON v.id = pv.videojuego_id
+ WHERE p.nombre = 'Oferta Relámpago Stanke';
+ id |         nombre          | descuento |        titulo        
+----+-------------------------+-----------+----------------------
+  8 | Oferta Relámpago Stanke |     30.00 | Turbo Drift Legends
+  8 | Oferta Relámpago Stanke |     30.00 | Sombras de Cartagena
+(2 rows)
+
+CALL pr_crear_promocion('Mega descuento', 95, now(), now() + INTERVAL '3 days',
+                        ARRAY[1]::BIGINT[], NULL);
+psql:sql/04_pruebas.sql:137: ERROR:  El descuento debe estar entre 1 % y 90 %: se recibió 95
+CONTEXT:  PL/pgSQL function pr_crear_promocion(character varying,numeric,timestamp with time zone,timestamp with time zone,bigint[],bigint) line 10 at RAISE
+CALL pr_crear_promocion('Clásicos de Arena', 50, now(), now() + INTERVAL '3 days',
+                        ARRAY[2, 11]::BIGINT[], NULL);
+psql:sql/04_pruebas.sql:141: ERROR:  El videojuego 11 "Battle Arena Zero" está retirado y no puede entrar en una promoción
+CONTEXT:  PL/pgSQL function pr_crear_promocion(character varying,numeric,timestamp with time zone,timestamp with time zone,bigint[],bigint) line 43 at RAISE
+CALL pr_crear_promocion('Semana Retro', 20, '2026-12-10', '2026-12-01',
+                        ARRAY[6]::BIGINT[], NULL);
+psql:sql/04_pruebas.sql:145: ERROR:  La fecha de fin (2026-12-01 00:00:00-05) debe ser posterior a la fecha de inicio (2026-12-10 00:00:00-05)
+CONTEXT:  PL/pgSQL function pr_crear_promocion(character varying,numeric,timestamp with time zone,timestamp with time zone,bigint[],bigint) line 16 at RAISE
+SELECT id, nombre, saldo FROM usuario WHERE id = 11;
+ id |       nombre        | saldo 
+----+---------------------+-------
+ 11 | Daniel Herrera Cruz | 60.00
+(1 row)
+
+SELECT usuario_id, videojuego_id FROM lista_deseos WHERE usuario_id = 11;
+ usuario_id | videojuego_id 
+------------+---------------
+         11 |             9
+(1 row)
+
+CALL pr_comprar_videojuego(11, 9, NULL);
+psql:sql/04_pruebas.sql:158: NOTICE:  Compra 31 registrada: "Sombras de Cartagena" por 24.49 (descuento 30.00 %); saldo restante 35.51
+ p_compra_id 
+-------------
+          31
+(1 row)
+
+SELECT id, nombre, saldo FROM usuario WHERE id = 11;
+ id |       nombre        | saldo 
+----+---------------------+-------
+ 11 | Daniel Herrera Cruz | 35.51
+(1 row)
+
+SELECT id, usuario_id, videojuego_id, monto, estado FROM compra WHERE usuario_id = 11 AND videojuego_id = 9;
+ id | usuario_id | videojuego_id | monto |   estado   
+----+------------+---------------+-------+------------
+ 31 |         11 |             9 | 24.49 | completada
+(1 row)
+
+SELECT usuario_id, videojuego_id, fecha_adquisicion FROM biblioteca WHERE usuario_id = 11 AND videojuego_id = 9;
+ usuario_id | videojuego_id |       fecha_adquisicion       
+------------+---------------+-------------------------------
+         11 |             9 | 2026-11-03 19:45:36.745658-05
+(1 row)
+
+SELECT count(*) AS sigue_en_lista_deseos FROM lista_deseos WHERE usuario_id = 11 AND videojuego_id = 9;
+ sigue_en_lista_deseos 
+-----------------------
+                     0
+(1 row)
+
+CALL pr_comprar_videojuego(13, 1, NULL);
+psql:sql/04_pruebas.sql:166: ERROR:  Saldo insuficiente: el usuario 13 tiene 5.25 y "Chronos Odyssey" cuesta 39.99
+CONTEXT:  PL/pgSQL function pr_comprar_videojuego(bigint,bigint,bigint) line 59 at RAISE
+CALL pr_comprar_videojuego(9, 10, NULL);
+psql:sql/04_pruebas.sql:169: ERROR:  El videojuego "Mechs of Titan" no está a la venta: su estado es pendiente
+CONTEXT:  PL/pgSQL function pr_comprar_videojuego(bigint,bigint,bigint) line 41 at RAISE
+CALL pr_comprar_videojuego(7, 1, NULL);
+psql:sql/04_pruebas.sql:172: ERROR:  El usuario 7 ya tiene "Chronos Odyssey" en su biblioteca
+CONTEXT:  PL/pgSQL function pr_comprar_videojuego(bigint,bigint,bigint) line 46 at RAISE
+CALL pr_comprar_videojuego(14, 3, NULL);
+psql:sql/04_pruebas.sql:175: ERROR:  La cuenta del usuario 14 está suspendida: no puede comprar videojuegos
+CONTEXT:  PL/pgSQL function pr_comprar_videojuego(bigint,bigint,bigint) line 27 at RAISE
+SELECT id, nombre, saldo FROM usuario WHERE id = 13;
+ id |         nombre         | saldo 
+----+------------------------+-------
+ 13 | Mateo Salazar Quintero |  5.25
+(1 row)
+
+CALL pr_reembolsar_compra(11, 31);
+psql:sql/04_pruebas.sql:186: NOTICE:  Compra 31 reembolsada: se devolvieron 24.49 al usuario 11
+CALL
+SELECT id, nombre, saldo FROM usuario WHERE id = 11;
+ id |       nombre        | saldo 
+----+---------------------+-------
+ 11 | Daniel Herrera Cruz | 60.00
+(1 row)
+
+SELECT id, videojuego_id, monto, estado FROM compra WHERE id = 31;
+ id | videojuego_id | monto |   estado    
+----+---------------+-------+-------------
+ 31 |             9 | 24.49 | reembolsada
+(1 row)
+
+SELECT count(*) AS sigue_en_biblioteca FROM biblioteca WHERE usuario_id = 11 AND videojuego_id = 9;
+ sigue_en_biblioteca 
+---------------------
+                   0
+(1 row)
+
+CALL pr_reembolsar_compra(11, 31);
+psql:sql/04_pruebas.sql:193: ERROR:  La compra 31 ya fue reembolsada
+CONTEXT:  PL/pgSQL function pr_reembolsar_compra(bigint,bigint) line 29 at RAISE
+CALL pr_reembolsar_compra(7, 1);
+psql:sql/04_pruebas.sql:196: ERROR:  La compra 1 se hizo el 2025-12-02 y ya pasaron más de 14 días: no se puede reembolsar
+CONTEXT:  PL/pgSQL function pr_reembolsar_compra(bigint,bigint) line 32 at RAISE
+CALL pr_reembolsar_compra(7, 3);
+psql:sql/04_pruebas.sql:199: ERROR:  La compra 3 no pertenece al usuario 7
+CONTEXT:  PL/pgSQL function pr_reembolsar_compra(bigint,bigint) line 26 at RAISE
+SELECT * FROM fn_reporte_ventas_desarrollador(1, '2026-01-01', '2026-12-31');
+ videojuego_id |        titulo         | copias_vendidas | copias_reembolsadas | ingresos 
+---------------+-----------------------+-----------------+---------------------+----------
+             1 | Chronos Odyssey       |               5 |                   0 |   191.95
+             6 | Pixel Dungeon Tactics |               3 |                   0 |    26.47
+(2 rows)
+
+SELECT * FROM fn_reporte_ventas_desarrollador(5, '2025-01-01', '2026-12-31');
+ videojuego_id |        titulo         | copias_vendidas | copias_reembolsadas | ingresos 
+---------------+-----------------------+-----------------+---------------------+----------
+             5 | Echoes of the Deep    |               4 |                   1 |    72.46
+            14 | Leyendas del Amazonas |               0 |                   0 |     0.00
+             9 | Sombras de Cartagena  |               0 |                   1 |     0.00
+(3 rows)
+
+SELECT * FROM fn_reporte_ventas_desarrollador(99, '2026-01-01', '2026-12-31');
+psql:sql/04_pruebas.sql:213: ERROR:  El desarrollador 99 no existe
+CONTEXT:  PL/pgSQL function fn_reporte_ventas_desarrollador(bigint,date,date) line 4 at RAISE
+SELECT * FROM fn_reporte_ventas_desarrollador(1, '2026-12-31', '2026-01-01');
+psql:sql/04_pruebas.sql:216: ERROR:  Periodo inválido: la fecha final (2026-01-01) es anterior a la inicial (2026-12-31)
+CONTEXT:  PL/pgSQL function fn_reporte_ventas_desarrollador(bigint,date,date) line 10 at RAISE
+INSERT INTO compra (usuario_id, videojuego_id, monto) VALUES (8, 11, 0.00);
+psql:sql/04_pruebas.sql:224: ERROR:  No se puede comprar "Battle Arena Zero" (videojuego 11): su estado es retirado y solo se venden videojuegos publicados
+CONTEXT:  PL/pgSQL function fn_rn12_compra_solo_publicados() line 12 at RAISE
+INSERT INTO compra (usuario_id, videojuego_id, monto) VALUES (7, 1, 39.99);
+psql:sql/04_pruebas.sql:227: ERROR:  El usuario 7 ya tiene el videojuego 1 en su biblioteca: no puede comprarlo de nuevo
+CONTEXT:  PL/pgSQL function fn_rn13_compra_no_duplicada() line 7 at RAISE
+INSERT INTO resena (usuario_id, videojuego_id, calificacion, comentario)
+VALUES (13, 1, 4, 'Me gustó mucho la historia.');
+psql:sql/04_pruebas.sql:231: ERROR:  El usuario 13 no puede reseñar el videojuego 1 porque no está en su biblioteca
+CONTEXT:  PL/pgSQL function fn_rn15_resena_solo_propios() line 7 at RAISE
+INSERT INTO compra (usuario_id, videojuego_id, monto) VALUES (15, 3, 14.99);
+INSERT 0 1
+SELECT usuario_id, videojuego_id, fecha_adquisicion FROM biblioteca WHERE usuario_id = 15 AND videojuego_id = 3;
+ usuario_id | videojuego_id |       fecha_adquisicion       
+------------+---------------+-------------------------------
+         15 |             3 | 2026-11-03 19:45:36.758192-05
+(1 row)
+
+SELECT id, nombre, saldo FROM usuario WHERE id = 7;
+ id |       nombre       | saldo 
+----+--------------------+-------
+  7 | Carlos Pérez Rojas | 85.50
+(1 row)
+
+BEGIN;
+BEGIN
+UPDATE usuario SET saldo = saldo - 39.99 WHERE id = 7;
+UPDATE 1
+INSERT INTO compra (usuario_id, videojuego_id, monto) VALUES (7, 1, 39.99);
+psql:sql/04_pruebas.sql:248: ERROR:  El usuario 7 ya tiene el videojuego 1 en su biblioteca: no puede comprarlo de nuevo
+CONTEXT:  PL/pgSQL function fn_rn13_compra_no_duplicada() line 7 at RAISE
+ROLLBACK;
+ROLLBACK
+SELECT id, nombre, saldo FROM usuario WHERE id = 7;
+ id |       nombre       | saldo 
+----+--------------------+-------
+  7 | Carlos Pérez Rojas | 85.50
+(1 row)
+
